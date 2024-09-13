@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>64×64 Pixel Drawing</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            image-rendering: pixelated;
+            width: 256px;
+            height: 256px;
+        }
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        #controls {
+            margin-bottom: 10px;
+        }
+        #buttons {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Draw a 64×64 Pixel Image</h1>
+    <div id="controls">
+        <label for="bg-color">Background Color:</label>
+        <input type="color" id="bg-color" value="#ffffff">
+        <button onclick="setBackgroundColor()">Set Background Color</button>
+        <br>
+        <label for="pen-color">Pen Color:</label>
+        <input type="color" id="pen-color" value="#000000">
+    </div>
+    <canvas id="canvas" width="64" height="64"></canvas>
+    <div id="buttons">
+        <button onclick="clearCanvas()">Clear</button>
+        <button onclick="saveImage()">Save</button>
+    </div>
+    <script>
+        // JavaScript code as updated above
+        const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let painting = false;
+let bgColor = '#ffffff'; // Default background color
+let penColor = '#000000'; // Default pen color
+
+// Initialize canvas with the default background color
+function initializeCanvas() {
+    ctx.fillStyle = bgColor;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+initializeCanvas();
+
+// Function to update background color
+function setBackgroundColor() {
+    const colorPicker = document.getElementById('bg-color');
+    bgColor = colorPicker.value;
+    ctx.fillStyle = bgColor;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+// Function to update pen color
+function setPenColor() {
+    const penColorPicker = document.getElementById('pen-color');
+    penColor = penColorPicker.value;
+}
+
+// Add event listener for pen color change
+document.getElementById('pen-color').addEventListener('change', setPenColor);
+
+// Adjust coordinates for high-DPI displays
+function getMousePos(evt) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const x = Math.floor((evt.clientX - rect.left) * scaleX);
+    const y = Math.floor((evt.clientY - rect.top) * scaleY);
+    return { x, y };
+}
+
+canvas.addEventListener('mousedown', (e) => {
+    painting = true;
+    draw(e);
+});
+
+canvas.addEventListener('mousemove', (e) => {
+    if (painting) {
+        draw(e);
+    }
+});
+
+canvas.addEventListener('mouseup', () => {
+    painting = false;
+    ctx.beginPath();
+});
+
+canvas.addEventListener('mouseout', () => {
+    painting = false;
+    ctx.beginPath();
+});
+
+function draw(e) {
+    const { x, y } = getMousePos(e);
+    ctx.fillStyle = penColor;
+    ctx.fillRect(x, y, 1, 1);
+}
+
+function clearCanvas() {
+    ctx.fillStyle = bgColor;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+function saveImage() {
+    const dataURL = canvas.toDataURL('image/png');
+    fetch('/save_image', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ img_data: dataURL }),
+    })
+    .then(response => response.text())
+    .then(data => {
+        alert(data);
+    })
+    .catch((error) => {
+        alert('Error saving image.');
+        console.error('Error:', error);
+    });
+}
+    </script>
+</body>
+</html>
